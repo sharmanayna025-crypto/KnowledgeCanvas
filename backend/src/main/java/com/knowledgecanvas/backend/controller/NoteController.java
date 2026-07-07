@@ -1,8 +1,9 @@
 package com.knowledgecanvas.backend.controller;
 
-import jakarta.validation.Valid;
-import com.knowledgecanvas.backend.entity.Note;
+import com.knowledgecanvas.backend.dto.NoteRequest;
+import com.knowledgecanvas.backend.dto.NoteResponse;
 import com.knowledgecanvas.backend.service.NoteService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,27 +19,29 @@ public class NoteController {
     }
 
     @GetMapping
-    public List<Note> getAllNotes() {
+    public List<NoteResponse> getAllNotes() {
         return noteService.getAllNotes();
     }
 
     @PostMapping
-    public Note createNote(@Valid @RequestBody Note note) {
-        return noteService.saveNote(note);
+    public NoteResponse createNote(@Valid @RequestBody NoteRequest request) {
+        return noteService.saveNote(request);
     }
+
     @GetMapping("/search")
-    public List<Note> searchNotes(@RequestParam String keyword) {
+    public List<NoteResponse> searchNotes(@RequestParam String keyword) {
         return noteService.searchNotes(keyword);
     }
+
     @GetMapping("/{id}")
-    public Note getNoteById(@PathVariable Long id) {
-        return noteService.getNoteById(id).orElse(null);
+    public NoteResponse getNoteById(@PathVariable Long id) {
+        return noteService.getNoteById(id);
     }
 
     @PutMapping("/{id}")
-    public Note updateNote(@PathVariable Long id,
-                           @Valid @RequestBody Note note) {
-        return noteService.updateNote(id, note);
+    public NoteResponse updateNote(@PathVariable Long id,
+                                   @Valid @RequestBody NoteRequest request) {
+        return noteService.updateNote(id, request);
     }
 
     @DeleteMapping("/{id}")
