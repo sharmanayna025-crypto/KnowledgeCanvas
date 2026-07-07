@@ -4,18 +4,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 @Entity
 public class Note {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @NotBlank(message = "Title cannot be empty")
+    @Size(max = 100, message = "Title cannot exceed 100 characters")
     private String title;
 
+    @NotBlank(message = "Content cannot be empty")
     private String content;
-
     public Note() {
     }
 

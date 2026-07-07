@@ -1,5 +1,6 @@
 package com.knowledgecanvas.backend.controller;
 
+import jakarta.validation.Valid;
 import com.knowledgecanvas.backend.entity.Note;
 import com.knowledgecanvas.backend.service.NoteService;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,23 @@ public class NoteController {
     }
 
     @PostMapping
-    public Note createNote(@RequestBody Note note) {
+    public Note createNote(@Valid @RequestBody Note note) {
         return noteService.saveNote(note);
+    }
+
+    @GetMapping("/{id}")
+    public Note getNoteById(@PathVariable Long id) {
+        return noteService.getNoteById(id).orElse(null);
+    }
+
+    @PutMapping("/{id}")
+    public Note updateNote(@PathVariable Long id,
+                           @Valid @RequestBody Note note) {
+        return noteService.updateNote(id, note);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteNote(@PathVariable Long id) {
+        noteService.deleteNote(id);
     }
 }
