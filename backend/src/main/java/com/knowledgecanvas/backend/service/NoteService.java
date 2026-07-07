@@ -15,7 +15,9 @@ public class NoteService {
     public NoteService(NoteRepository noteRepository) {
         this.noteRepository = noteRepository;
     }
-
+    public List<Note> searchNotes(String keyword) {
+        return noteRepository.findByTitleContainingIgnoreCase(keyword);
+    }
     public List<Note> getAllNotes() {
         return noteRepository.findAll();
     }

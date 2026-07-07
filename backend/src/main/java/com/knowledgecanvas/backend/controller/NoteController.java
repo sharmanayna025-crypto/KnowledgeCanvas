@@ -26,7 +26,10 @@ public class NoteController {
     public Note createNote(@Valid @RequestBody Note note) {
         return noteService.saveNote(note);
     }
-
+    @GetMapping("/search")
+    public List<Note> searchNotes(@RequestParam String keyword) {
+        return noteService.searchNotes(keyword);
+    }
     @GetMapping("/{id}")
     public Note getNoteById(@PathVariable Long id) {
         return noteService.getNoteById(id).orElse(null);
