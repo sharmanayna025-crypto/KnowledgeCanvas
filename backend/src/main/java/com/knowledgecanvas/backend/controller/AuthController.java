@@ -39,6 +39,9 @@ public class AuthController {
             @RequestBody LoginRequest request
     ) {
 
+        System.out.println("EMAIL = " + request.getEmail());
+        System.out.println("PASSWORD = " + request.getPassword());
+
         return ResponseEntity.ok(
                 authService.login(
                         request.getEmail(),

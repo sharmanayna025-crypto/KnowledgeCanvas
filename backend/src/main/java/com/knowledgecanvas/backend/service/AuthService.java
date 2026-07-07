@@ -35,12 +35,33 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
 
+        System.out.println("===== REGISTER DEBUG =====");
+        System.out.println("Raw password: " + user.getPassword());
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        System.out.println("Encoded password: " + user.getPassword());
 
         return userRepository.save(user);
     }
 
     public String login(String email, String password) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        System.out.println("========== LOGIN DEBUG ==========");
+        System.out.println("Email entered: " + email);
+        System.out.println("Raw password entered: [" + password + "]");
+        System.out.println("Stored email: " + user.getEmail());
+        System.out.println("Stored hash: " + user.getPassword());
+
+        boolean matches = passwordEncoder.matches(
+                password,
+                user.getPassword()
+        );
+
+        System.out.println("Password matches: " + matches);
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -48,6 +69,8 @@ public class AuthService {
                         password
                 )
         );
+
+        System.out.println("Authentication successful!");
 
         return jwtService.generateToken(email);
     }
