@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
 
-function CreateNote() {
+function EditNote() {
 
+    const { id } = useParams();
     const navigate = useNavigate();
 
     const [note, setNote] = useState({
@@ -12,6 +13,29 @@ function CreateNote() {
         content: "",
         color: "white"
     });
+
+
+    useEffect(() => {
+        fetchNote();
+    }, []);
+
+
+    const fetchNote = async () => {
+
+        try {
+
+            const response = await api.get(`/notes/${id}`);
+
+            setNote(response.data);
+
+        } catch (error) {
+
+            console.log(error);
+
+            alert("Failed to load note");
+
+        }
+    };
 
 
     const handleChange = (e) => {
@@ -30,24 +54,19 @@ function CreateNote() {
 
         try {
 
-            await api.post("/notes", note);
+            await api.put(`/notes/${id}`, note);
 
-            alert("Note created successfully");
+            alert("Note updated successfully");
 
             navigate("/dashboard");
 
         } catch (error) {
 
-    console.log(error.response?.data);
-    console.log(error);
+            console.log(error);
 
-    alert(
-        JSON.stringify(
-            error.response?.data || error.message
-        )
-    );
+            alert("Failed to update note");
 
-}
+        }
     };
 
 
@@ -55,6 +74,7 @@ function CreateNote() {
         <div>
 
             <Navbar />
+
 
             <div
                 style={{
@@ -64,7 +84,7 @@ function CreateNote() {
                 }}
             >
 
-                <h2>Create Note</h2>
+                <h2>Edit Note</h2>
 
 
                 <form onSubmit={handleSubmit}>
@@ -73,25 +93,23 @@ function CreateNote() {
                     <input
                         type="text"
                         name="title"
-                        placeholder="Title"
                         value={note.title}
                         onChange={handleChange}
                     />
 
 
-                    <br />
+                    <br /><br />
 
 
                     <textarea
                         name="content"
-                        placeholder="Content"
                         rows="8"
                         value={note.content}
                         onChange={handleChange}
                     />
 
 
-                    <br />
+                    <br /><br />
 
 
                     <label>
@@ -104,7 +122,7 @@ function CreateNote() {
 
                     <select
                         name="color"
-                        value={note.color}
+                        value={note.color || "white"}
                         onChange={handleChange}
                     >
 
@@ -145,7 +163,7 @@ function CreateNote() {
                             color: "white"
                         }}
                     >
-                        Save Note
+                        Update Note
                     </button>
 
 
@@ -157,4 +175,4 @@ function CreateNote() {
     );
 }
 
-export default CreateNote;
+export default EditNote;

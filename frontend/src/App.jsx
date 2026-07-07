@@ -4,9 +4,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CreateNote from "./pages/CreateNote";
+import EditNote from "./pages/EditNote";
 
 import ProtectedRoute from "./components/ProtectedRoute";
-
 
 function App() {
 
@@ -21,7 +21,6 @@ function App() {
 
                 <Route path="/register" element={<Register />} />
 
-
                 <Route
                     path="/dashboard"
                     element={
@@ -31,12 +30,20 @@ function App() {
                     }
                 />
 
-
                 <Route
                     path="/create"
                     element={
                         <ProtectedRoute>
                             <CreateNote />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/edit/:id"
+                    element={
+                        <ProtectedRoute>
+                            <EditNote />
                         </ProtectedRoute>
                     }
                 />
