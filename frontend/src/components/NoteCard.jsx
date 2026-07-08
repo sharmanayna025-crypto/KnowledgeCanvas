@@ -1,17 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { useTheme } from "../context/ThemeContext";
 
 function NoteCard({ note }) {
 
     const navigate = useNavigate();
+    const { theme } = useTheme();
 
     const handleDelete = async () => {
 
-        const confirmDelete = window.confirm(
-            "Are you sure you want to delete this note?"
-        );
-
-        if (!confirmDelete) {
+        if (!window.confirm("Delete this note?")) {
             return;
         }
 
@@ -30,73 +28,130 @@ function NoteCard({ note }) {
             alert("Failed to delete note");
 
         }
+
     };
 
+    const formatDate = (date) => {
+
+        if (!date) return "";
+
+        return new Date(date).toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+    };
 
     return (
+
         <div
             style={{
-                background: note.color || "white",
+                background: note.color || theme.card,
+                borderRadius: "18px",
                 padding: "20px",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                marginBottom: "20px",
-                maxWidth: "600px"
+                border: `1px solid ${theme.border}`,
+                boxShadow: theme.shadow,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minHeight: "280px"
             }}
         >
 
-            <h3
-                style={{
-                    marginTop: 0,
-                    color: "#222"
-                }}
-            >
-                {note.title}
-            </h3>
+            <div>
 
-
-            <p
-                style={{
-                    color: "#555",
-                    lineHeight: "1.6"
-                }}
-            >
-                {note.content}
-            </p>
-
-
-            <div
-                style={{
-                    marginTop: "15px"
-                }}
-            >
-
-                <button
-                    onClick={() => navigate(`/edit/${note.id}`)}
+                <span
                     style={{
-                        background: "#2563eb",
+                        background: theme.primary,
                         color: "white",
-                        marginRight: "10px"
+                        padding: "5px 12px",
+                        borderRadius: "20px",
+                        fontSize: "13px",
+                        fontWeight: "bold"
                     }}
                 >
-                    Edit
-                </button>
+                    {note.category}
+                </span>
 
-
-                <button
-                    onClick={handleDelete}
+                <h2
                     style={{
-                        background: "#dc2626",
-                        color: "white"
+                        marginTop: "15px",
+                        marginBottom: "10px"
                     }}
                 >
-                    Delete
-                </button>
+                    {note.title}
+                </h2>
+
+                <p
+                    style={{
+                        whiteSpace: "pre-wrap",
+                        lineHeight: "1.6"
+                    }}
+                >
+                    {note.content}
+                </p>
+
+            </div>
+
+            <div>
+
+                <hr />
+
+                <p
+                    style={{
+                        fontSize: "13px",
+                        color: "#777",
+                        marginBottom: "5px"
+                    }}
+                >
+                    Created:
+                    {" "}
+                    {formatDate(note.createdAt)}
+                </p>
+
+                <p
+                    style={{
+                        fontSize: "13px",
+                        color: "#777"
+                    }}
+                >
+                    Updated:
+                    {" "}
+                    {formatDate(note.updatedAt)}
+                </p>
+
+                <div
+                    style={{
+                        marginTop: "15px"
+                    }}
+                >
+
+                    <button
+                        onClick={() => navigate(`/edit/${note.id}`)}
+                        style={{
+                            marginRight: "10px"
+                        }}
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        onClick={handleDelete}
+                    >
+                        Delete
+                    </button>
+
+                </div>
 
             </div>
 
         </div>
+
     );
+
 }
 
 export default NoteCard;

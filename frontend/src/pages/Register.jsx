@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { useTheme } from "../context/ThemeContext";
 
 function Register() {
 
     const navigate = useNavigate();
+    const { theme } = useTheme();
 
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         password: ""
     });
-
 
     const handleChange = (e) => {
 
@@ -21,7 +22,6 @@ function Register() {
         });
 
     };
-
 
     const handleSubmit = async (e) => {
 
@@ -37,59 +37,162 @@ function Register() {
 
         } catch (error) {
 
-    console.log(error);
+            console.log(error);
 
-    alert(JSON.stringify(error.response?.data || error.message));
+            alert(
+                error.response?.data?.message ||
+                "Registration failed"
+            );
 
-}
+        }
+
     };
 
-
     return (
-        <div>
 
-            <h2>Create Account</h2>
+        <div
+            style={{
+                background: theme.background,
+                minHeight: "100vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                color: theme.text
+            }}
+        >
 
-            <form onSubmit={handleSubmit}>
+            <div
+                style={{
+                    width: "420px",
+                    background: theme.card,
+                    padding: "35px",
+                    borderRadius: "20px",
+                    boxShadow: theme.shadow,
+                    border: `1px solid ${theme.border}`
+                }}
+            >
 
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                />
+                <h1
+                    style={{
+                        textAlign: "center",
+                        color: theme.primary,
+                        marginBottom: "10px"
+                    }}
+                >
+                    📚 KnowledgeCanvas
+                </h1>
 
-                <br />
+                <h2
+                    style={{
+                        textAlign: "center",
+                        marginBottom: "30px"
+                    }}
+                >
+                    Create Account
+                </h2>
 
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                />
+                <form onSubmit={handleSubmit}>
 
-                <br />
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Full Name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        style={{
+                            width: "100%",
+                            padding: "12px",
+                            marginBottom: "15px",
+                            borderRadius: "8px",
+                            border: `1px solid ${theme.border}`,
+                            background: theme.background,
+                            color: theme.text,
+                            boxSizing: "border-box"
+                        }}
+                    />
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                />
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        style={{
+                            width: "100%",
+                            padding: "12px",
+                            marginBottom: "15px",
+                            borderRadius: "8px",
+                            border: `1px solid ${theme.border}`,
+                            background: theme.background,
+                            color: theme.text,
+                            boxSizing: "border-box"
+                        }}
+                    />
 
-                <br />
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        style={{
+                            width: "100%",
+                            padding: "12px",
+                            marginBottom: "20px",
+                            borderRadius: "8px",
+                            border: `1px solid ${theme.border}`,
+                            background: theme.background,
+                            color: theme.text,
+                            boxSizing: "border-box"
+                        }}
+                    />
 
-                <button type="submit">
-                    Register
-                </button>
+                    <button
+                        type="submit"
+                        style={{
+                            width: "100%",
+                            padding: "12px",
+                            border: "none",
+                            borderRadius: "8px",
+                            background: theme.primary,
+                            color: "white",
+                            fontWeight: "bold",
+                            cursor: "pointer"
+                        }}
+                    >
+                        Create Account
+                    </button>
 
-            </form>
+                </form>
+
+                <p
+                    style={{
+                        textAlign: "center",
+                        marginTop: "20px"
+                    }}
+                >
+                    Already have an account?{" "}
+                    <Link
+                        to="/login"
+                        style={{
+                            color: theme.primary,
+                            textDecoration: "none",
+                            fontWeight: "bold"
+                        }}
+                    >
+                        Login
+                    </Link>
+                </p>
+
+            </div>
 
         </div>
+
     );
+
 }
 
 export default Register;

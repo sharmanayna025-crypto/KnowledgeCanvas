@@ -5,21 +5,28 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CreateNote from "./pages/CreateNote";
 import EditNote from "./pages/EditNote";
+import NoteDetails from "./pages/NoteDetails";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+
 
 function App() {
 
     return (
+
         <BrowserRouter>
 
             <Routes>
 
-                <Route path="/" element={<Login />} />
+                <Route
+                    path="/"
+                    element={<Login />}
+                />
 
-                <Route path="/login" element={<Login />} />
-
-                <Route path="/register" element={<Register />} />
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
 
                 <Route
                     path="/dashboard"
@@ -48,10 +55,21 @@ function App() {
                     }
                 />
 
+                <Route
+                    path="/notes/:id"
+                    element={
+                        <ProtectedRoute>
+                            <NoteDetails />
+                        </ProtectedRoute>
+                    }
+                />
+
             </Routes>
 
         </BrowserRouter>
+
     );
+
 }
 
 export default App;

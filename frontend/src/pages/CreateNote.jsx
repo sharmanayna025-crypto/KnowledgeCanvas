@@ -2,17 +2,39 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
+import { useTheme } from "../context/ThemeContext";
 
 function CreateNote() {
 
     const navigate = useNavigate();
+    const { theme } = useTheme();
+
+    const colors = [
+        "#FFFFFF",
+        "#FFF9C4",
+        "#FFCDD2",
+        "#C8E6C9",
+        "#BBDEFB",
+        "#E1BEE7",
+        "#FFE0B2",
+        "#D7CCC8"
+    ];
+
+    const categories = [
+        "General",
+        "Study",
+        "Work",
+        "Personal",
+        "Ideas",
+        "To-Do"
+    ];
 
     const [note, setNote] = useState({
         title: "",
         content: "",
-        color: "white"
+        color: "#FFFFFF",
+        category: "General"
     });
-
 
     const handleChange = (e) => {
 
@@ -22,7 +44,6 @@ function CreateNote() {
         });
 
     };
-
 
     const handleSubmit = async (e) => {
 
@@ -38,122 +59,198 @@ function CreateNote() {
 
         } catch (error) {
 
-    console.log(error.response?.data);
-    console.log(error);
+            console.log(error);
 
-    alert(
-        JSON.stringify(
-            error.response?.data || error.message
-        )
-    );
+            alert("Failed to create note");
 
-}
+        }
     };
 
-
     return (
-        <div>
+
+        <div
+            style={{
+                background: theme.background,
+                minHeight: "100vh",
+                color: theme.text
+            }}
+        >
 
             <Navbar />
 
             <div
                 style={{
-                    padding: "30px",
-                    maxWidth: "600px",
-                    margin: "auto"
+                    display: "flex",
+                    justifyContent: "center",
+                    padding: "40px"
                 }}
             >
 
-                <h2>Create Note</h2>
+                <div
+                    style={{
+                        width: "650px",
+                        background: theme.card,
+                        borderRadius: "20px",
+                        padding: "35px",
+                        boxShadow: theme.shadow,
+                        border: `1px solid ${theme.border}`
+                    }}
+                >
 
-
-                <form onSubmit={handleSubmit}>
-
+                    <h2
+                        style={{
+                            marginTop: 0,
+                            color: theme.primary
+                        }}
+                    >
+                        Create a New Note
+                    </h2>
 
                     <input
                         type="text"
                         name="title"
-                        placeholder="Title"
+                        placeholder="Enter title..."
                         value={note.title}
                         onChange={handleChange}
+                        required
+                        style={{
+                            width: "100%",
+                            padding: "14px",
+                            marginBottom: "20px",
+                            borderRadius: "10px",
+                            border: `1px solid ${theme.border}`,
+                            background: theme.background,
+                            color: theme.text,
+                            fontSize: "16px",
+                            boxSizing: "border-box"
+                        }}
                     />
-
-
-                    <br />
-
 
                     <textarea
                         name="content"
-                        placeholder="Content"
-                        rows="8"
+                        placeholder="Write your thoughts..."
                         value={note.content}
                         onChange={handleChange}
+                        required
+                        rows="10"
+                        style={{
+                            width: "100%",
+                            padding: "14px",
+                            borderRadius: "10px",
+                            border: `1px solid ${theme.border}`,
+                            background: theme.background,
+                            color: theme.text,
+                            resize: "vertical",
+                            fontSize: "16px",
+                            boxSizing: "border-box"
+                        }}
                     />
 
-
-                    <br />
-
-
-                    <label>
-                        Choose Note Color:
-                    </label>
-
-
-                    <br />
-
+                    <h4
+                        style={{
+                            marginTop: "25px"
+                        }}
+                    >
+                        Choose Category
+                    </h4>
 
                     <select
-                        name="color"
-                        value={note.color}
+                        name="category"
+                        value={note.category}
                         onChange={handleChange}
+                        style={{
+                            width: "100%",
+                            padding: "12px",
+                            borderRadius: "10px",
+                            border: `1px solid ${theme.border}`,
+                            background: theme.background,
+                            color: theme.text,
+                            marginBottom: "25px",
+                            fontSize: "16px"
+                        }}
                     >
 
-                        <option value="white">
-                            White
-                        </option>
+                        {
+                            categories.map((category) => (
 
-                        <option value="#fff9c4">
-                            Yellow
-                        </option>
+                                <option
+                                    key={category}
+                                    value={category}
+                                >
+                                    {category}
+                                </option>
 
-                        <option value="#bbdefb">
-                            Blue
-                        </option>
-
-                        <option value="#c8e6c9">
-                            Green
-                        </option>
-
-                        <option value="#f8bbd0">
-                            Pink
-                        </option>
-
-                        <option value="#e1bee7">
-                            Purple
-                        </option>
+                            ))
+                        }
 
                     </select>
 
+                    <h4>
+                        Choose a Note Color
+                    </h4>
 
-                    <br /><br />
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "12px",
+                            marginBottom: "30px",
+                            flexWrap: "wrap"
+                        }}
+                    >
 
+                        {
+                            colors.map((color) => (
+
+                                <div
+                                    key={color}
+                                    onClick={() =>
+                                        setNote({
+                                            ...note,
+                                            color: color
+                                        })
+                                    }
+                                    style={{
+                                        width: "35px",
+                                        height: "35px",
+                                        borderRadius: "50%",
+                                        background: color,
+                                        cursor: "pointer",
+                                        border:
+                                            note.color === color
+                                                ? `3px solid ${theme.primary}`
+                                                : "1px solid #ccc"
+                                    }}
+                                />
+
+                            ))
+                        }
+
+                    </div>
 
                     <button
-                        type="submit"
+                        type="button"
+                        onClick={handleSubmit}
                         style={{
-                            background: "#2563eb",
-                            color: "white"
+                            width: "100%",
+                            padding: "15px",
+                            background: theme.primary,
+                            color: "white",
+                            border: "none",
+                            borderRadius: "10px",
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                            cursor: "pointer"
                         }}
                     >
                         Save Note
                     </button>
 
-
-                </form>
+                </div>
 
             </div>
 
         </div>
+
     );
 }
 

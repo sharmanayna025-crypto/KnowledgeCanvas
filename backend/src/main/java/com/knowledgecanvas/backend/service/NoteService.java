@@ -26,8 +26,10 @@ public class NoteService {
             NoteRepository noteRepository,
             UserRepository userRepository
     ) {
+
         this.noteRepository = noteRepository;
         this.userRepository = userRepository;
+
     }
 
 
@@ -38,8 +40,16 @@ public class NoteService {
                 note.getId(),
                 note.getTitle(),
                 note.getContent(),
-                note.getColor()
+                note.getColor() == null
+                        ? "#FFFFFF"
+                        : note.getColor(),
+                note.getCategory() == null
+                        ? "General"
+                        : note.getCategory(),
+                note.getCreatedAt(),
+                note.getUpdatedAt()
         );
+
     }
 
 
@@ -51,24 +61,46 @@ public class NoteService {
                 .orElseThrow(() ->
                         new RuntimeException("User not found")
                 );
+
     }
-
-
 
 
 
     public List<NoteResponse> getAllNotes(String email) {
 
-
         User user = getUser(email);
 
+        List<Note> notes = noteRepository.findByUser(user);
 
-        return noteRepository.findByUser(user)
-                .stream()
-                .map(this::convertToResponse)
+        System.out.println("TOTAL NOTES = " + notes.size());
+
+        for(Note note : notes){
+
+            System.out.println(
+                    "ID: " + note.getId()
+                            + " TITLE: " + note.getTitle()
+                            + " CONTENT: " + note.getContent()
+            );
+
+        }
+
+
+        return notes.stream()
+                .map(note -> {
+
+                    System.out.println(
+                            "CONVERTING NOTE ID = "
+                                    + note.getId()
+                    );
+
+                    return convertToResponse(note);
+
+                })
                 .toList();
 
     }
+
+
 
 
 
@@ -83,29 +115,52 @@ public class NoteService {
         User user = getUser(email);
 
 
+
         Note note = new Note();
 
-        note.setTitle(request.getTitle());
 
-        note.setContent(request.getContent());
+        note.setTitle(
+                request.getTitle()
+        );
+
+
+        note.setContent(
+                request.getContent()
+        );
+
+
 
         note.setColor(
                 request.getColor() == null
-                        ? "white"
+                        ? "#FFFFFF"
                         : request.getColor()
         );
+
+
+
+        note.setCategory(
+                request.getCategory() == null
+                        ? "General"
+                        : request.getCategory()
+        );
+
 
 
         note.setUser(user);
 
 
-        Note saved =
+
+        Note savedNote =
                 noteRepository.save(note);
 
 
-        return convertToResponse(saved);
+
+        return convertToResponse(savedNote);
 
     }
+
+
+
 
 
 
@@ -118,6 +173,7 @@ public class NoteService {
 
 
         User user = getUser(email);
+
 
 
         return noteRepository
@@ -135,6 +191,10 @@ public class NoteService {
 
 
 
+
+
+
+
     public NoteResponse getNoteById(
             Long id,
             String email
@@ -144,8 +204,9 @@ public class NoteService {
         User user = getUser(email);
 
 
+
         Note note =
-                noteRepository.findById(id)
+                noteRepository.findByIdAndUser(id, user)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Note not found"
@@ -153,14 +214,14 @@ public class NoteService {
                         );
 
 
-        if (!note.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized");
-        }
-
 
         return convertToResponse(note);
 
     }
+
+
+
+
 
 
 
@@ -173,8 +234,12 @@ public class NoteService {
     ) {
 
 
+        User user = getUser(email);
+
+
+
         Note note =
-                noteRepository.findById(id)
+                noteRepository.findByIdAndUser(id, user)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Note not found"
@@ -182,22 +247,44 @@ public class NoteService {
                         );
 
 
-        note.setTitle(request.getTitle());
 
-        note.setContent(request.getContent());
+        note.setTitle(
+                request.getTitle()
+        );
+
+
+        note.setContent(
+                request.getContent()
+        );
+
 
         note.setColor(
                 request.getColor() == null
-                        ? "white"
+                        ? "#FFFFFF"
                         : request.getColor()
         );
 
 
-        return convertToResponse(
-                noteRepository.save(note)
+        note.setCategory(
+                request.getCategory() == null
+                        ? "General"
+                        : request.getCategory()
         );
 
+
+
+        Note updatedNote =
+                noteRepository.save(note);
+
+
+
+        return convertToResponse(updatedNote);
+
     }
+
+
+
+
 
 
 
@@ -209,8 +296,12 @@ public class NoteService {
     ) {
 
 
+        User user = getUser(email);
+
+
+
         Note note =
-                noteRepository.findById(id)
+                noteRepository.findByIdAndUser(id, user)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Note not found"
@@ -218,8 +309,10 @@ public class NoteService {
                         );
 
 
+
         noteRepository.delete(note);
 
     }
+
 
 }
