@@ -89,4 +89,4 @@ KnowledgeCanvas aims to become a lifelong digital knowledge workspace where idea
 
 ## Status
 
-🚧 Currently under active development.
+Currently under active development.
