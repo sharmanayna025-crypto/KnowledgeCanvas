@@ -84,9 +84,3 @@ KnowledgeCanvas aims to become a lifelong digital knowledge workspace where idea
 
 ### DevOps
 - Docker
-
----
-
-## Status
-
-Currently under active development.
