@@ -84,3 +84,13 @@ KnowledgeCanvas aims to become a lifelong digital knowledge workspace where idea
 
 ### DevOps
 - Docker
+
+---
+
+#  Author
+
+**Nayna Sharma**
+
+B.Tech Computer Science Engineering
+
+MIT World Peace University
