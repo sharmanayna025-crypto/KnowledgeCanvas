@@ -1,8 +1,10 @@
 package com.knowledgecanvas.backend.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -12,40 +14,44 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final String SECRET_KEY =
-            "knowledgecanvas_secret_key_123456789";
+    private final SecretKey key;
+    private final long expirationMs;
 
-    private final SecretKey key =
-            Keys.hmacShaKeyFor(
-                    SECRET_KEY.getBytes(StandardCharsets.UTF_8)
-            );
-
+    public JwtService(
+            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.expiration-ms}") long expirationMs
+    ) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = expirationMs;
+    }
 
     public String generateToken(String email) {
 
         return Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date())
-                .expiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + 1000 * 60 * 60 * 24
-                        )
-                )
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
     }
 
-
+    /**
+     * Returns the email inside a valid token, or null if the token is
+     * expired, tampered with, or malformed.
+     */
     public String extractEmail(String token) {
 
-        Claims claims =
-                Jwts.parser()
-                        .verifyWith(key)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload();
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
-        return claims.getSubject();
+            return claims.getSubject();
+
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 }

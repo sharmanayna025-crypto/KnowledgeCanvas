@@ -37,6 +37,9 @@ public class Note {
     private String category = "General";
 
 
+    private Boolean pinned = false;
+
+
     private LocalDateTime createdAt;
 
 
@@ -131,6 +134,18 @@ public class Note {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+
+
+
+    public Boolean getPinned() {
+        return pinned;
+    }
+
+
+    public void setPinned(Boolean pinned) {
+        this.pinned = pinned;
     }
 
 

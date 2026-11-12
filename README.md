@@ -1,96 +1,80 @@
 # KnowledgeCanvas
 
-## Never Lose What You Learn
+**Never lose what you learn.** Notes and AI-assisted PDF study tools in one workspace.
+This repo merges the original *KnowledgeCanvas* (notes) and *DocuMind* (PDF + Gemini) projects.
 
-KnowledgeCanvas is a full-stack note management application that helps users create, organize, and manage their knowledge securely.
+## What you get
+- **Notes**: Markdown editor with preview, pinning, categories, colours, search, export to `.md`
+- **Documents**: upload PDFs, then get a summary, study notes, an interactive quiz, flashcards, and a chat grounded in the PDF
+- **Flashcards** from any PDF: flip, mark "I know this", shuffle; **AI help** in the note editor (summarize, improve, expand, checklist); **Back up / Restore** notes as JSON
+- **One search** across notes and PDF text; "Save to notes" from any AI output
+- Dark mode, mobile layout, one login for everything
 
-## Features
+## Layout
+| Folder | What | Stack | Port |
+|---|---|---|---|
+| `frontend/` | Unified UI | React, Vite | 5173 |
+| `backend/` | Auth + notes | Spring Boot 3, PostgreSQL, JWT | 8080 |
+| `ai-service/` | PDFs + Gemini | FastAPI, SQLite | 8000 |
+| `dev/` | In-memory stand-in for `backend/` | FastAPI | 8080 |
 
-- User authentication with JWT
-- Secure user-specific notes
-- Create, update, delete notes
-- Search notes
-- Category based organization
-- Custom note colors
-- Created and updated timestamps
-- Dark/light theme
-- Note details view
+The two backends share one JWT secret, so signing in once works for both.
 
-## Tech Stack
+## Run it
+> macOS: use `python3` (there is no `python` command). Keep each terminal tab open while its service runs. Frontend `.env` already points at `127.0.0.1`; open the app at http://localhost:5173.
 
-### Frontend
-- React
-- Vite
-- React Router
-- Axios
+**1. Database** (or skip to "Quick try" below): `docker compose up -d`
 
-### Backend
-- Spring Boot
-- Spring Security
-- JWT Authentication
-- Hibernate / JPA
+**2. Notes backend** (Java 21)
+```bash
+cd backend && ./mvnw spring-boot:run
+```
+**3. Document service** (Python 3.11+)
+```bash
+cd ai-service
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload
+```
+Then open `ai-service/.env` and put your key after `GEMINI_API_KEY=` (restart the service after saving).
+```text
+```
+**4. Frontend** (Node 20+)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open http://localhost:5173 and create an account.
 
-### Database
-- PostgreSQL
+### Quick try without Java or Postgres
+Run `dev/mock_core_api.py` instead of step 2 (`pip install -r dev/requirements.txt && uvicorn mock_core_api:app --app-dir dev --port 8080`). Notes live in memory only.
 
-## Project Structure
+## Configuration
+| Variable | Where | Default |
+|---|---|---|
+| `JWT_SECRET` | backend **and** ai-service (must match) | dev value, **change it** |
+| `DB_URL` `DB_USERNAME` `DB_PASSWORD` | backend | local Postgres |
+| `CORS_ORIGINS` | backend, ai-service | `localhost:5173` |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | ai-service | none, `gemini-3.8-flash` |
+| `MAX_UPLOAD_MB` | ai-service | 25 |
+| `VITE_CORE_API`, `VITE_AI_API` | frontend | `:8080`, `:8000` |
 
-## Future Improvements
+> The previous version committed a database password and JWT secret. They remain as fallback defaults so existing setups keep working. **Rotate them** and set the variables above for anything beyond local use.
 
-- AI note summarization
-- Quiz generation
-- Study analytics
-- Cloud deployment# KnowledgeCanvas
+## Tests
+```bash
+cd ai-service && pip install -r requirements-dev.txt && pytest
+```
+Swagger for the notes API: http://localhost:8080/swagger-ui.html. Documents API docs: http://localhost:8000/docs.
 
-> **Never Lose What You Learn.**
+## Notes on existing data
+- Old `documind.db` files are migrated automatically; documents uploaded before accounts existed are assigned to the first user who signs in.
+- Scanned (image-only) PDFs are rejected with a clear message; OCR is not supported yet.
 
-KnowledgeCanvas is a personal knowledge management platform that helps learners capture, organize, connect, and revisit everything they learn.
+## Roadmap
+OCR for scanned PDFs, tags and note links, spaced-repetition reviews, PDF export, deployment config.
 
----
-
-## Vision
-
-Learning shouldn't disappear after a lecture, a book, or a video.
-
-KnowledgeCanvas aims to become a lifelong digital knowledge workspace where ideas grow instead of getting lost.
-
----
-
-## Planned Features
-
--  Smart Notes
--  Knowledge Graph
--  Tags & Collections
--  Powerful Search
--  Revision Scheduler
--  Learning Analytics
--  Collaboration
--  Cloud Sync
-
----
-
-## Tech Stack
-
-### Backend
-- Java
-- Spring Boot
-
-### Frontend
-- React
-- TypeScript
-
-### Database
-- PostgreSQL
-
-### DevOps
-- Docker
-
----
-
-#  Author
-
-**Nayna Sharma**
-
-B.Tech Computer Science Engineering
-
-MIT World Peace University
+Author: Nayna Sharma

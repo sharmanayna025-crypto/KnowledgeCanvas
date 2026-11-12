@@ -1,157 +1,56 @@
-import { useNavigate } from "react-router-dom";
-import api from "../api/axios";
-import { useTheme } from "../context/ThemeContext";
+import { Link } from "react-router-dom";
+import { excerpt, timeAgo } from "../utils/format";
+import { isPlain } from "../utils/constants";
+import Highlight from "./Highlight";
+import Icon from "./Icon";
 
-function NoteCard({ note }) {
+export default function NoteCard({ note, onPin, onDelete, onEdit, query = "", list = false }) {
+  const tinted = !isPlain(note.color);
 
-    const navigate = useNavigate();
-    const { theme } = useTheme();
+  return (
+    <article
+      className={`card note-card ${tinted ? "tinted" : ""} ${list ? "note-card-list" : ""}`}
+      style={tinted ? { background: note.color } : undefined}
+    >
+      <div className="note-card-top">
+        <span className="pill">{note.category}</span>
+        {note.pinned && (
+          <span className="pinned-flag" title="Pinned">
+            <Icon name="pin" size={13} /> Pinned
+          </span>
+        )}
+      </div>
 
-    const handleDelete = async () => {
+      <h3 className="note-title">
+        <Link to={`/notes/${note.id}`} className="card-link">
+          <Highlight text={note.title} query={query} />
+        </Link>
+      </h3>
 
-        if (!window.confirm("Delete this note?")) {
-            return;
-        }
+      <p className="note-excerpt">
+        <Highlight text={excerpt(note.content, list ? 220 : 150)} query={query} />
+      </p>
 
-        try {
-
-            await api.delete(`/notes/${note.id}`);
-
-            alert("Note deleted successfully");
-
-            window.location.reload();
-
-        } catch (error) {
-
-            console.log(error);
-
-            alert("Failed to delete note");
-
-        }
-
-    };
-
-    const formatDate = (date) => {
-
-        if (!date) return "";
-
-        return new Date(date).toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-
-    };
-
-    return (
-
-        <div
-            style={{
-                background: note.color || theme.card,
-                borderRadius: "18px",
-                padding: "20px",
-                border: `1px solid ${theme.border}`,
-                boxShadow: theme.shadow,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                minHeight: "280px"
-            }}
-        >
-
-            <div>
-
-                <span
-                    style={{
-                        background: theme.primary,
-                        color: "white",
-                        padding: "5px 12px",
-                        borderRadius: "20px",
-                        fontSize: "13px",
-                        fontWeight: "bold"
-                    }}
-                >
-                    {note.category}
-                </span>
-
-                <h2
-                    style={{
-                        marginTop: "15px",
-                        marginBottom: "10px"
-                    }}
-                >
-                    {note.title}
-                </h2>
-
-                <p
-                    style={{
-                        whiteSpace: "pre-wrap",
-                        lineHeight: "1.6"
-                    }}
-                >
-                    {note.content}
-                </p>
-
-            </div>
-
-            <div>
-
-                <hr />
-
-                <p
-                    style={{
-                        fontSize: "13px",
-                        color: "#777",
-                        marginBottom: "5px"
-                    }}
-                >
-                    Created:
-                    {" "}
-                    {formatDate(note.createdAt)}
-                </p>
-
-                <p
-                    style={{
-                        fontSize: "13px",
-                        color: "#777"
-                    }}
-                >
-                    Updated:
-                    {" "}
-                    {formatDate(note.updatedAt)}
-                </p>
-
-                <div
-                    style={{
-                        marginTop: "15px"
-                    }}
-                >
-
-                    <button
-                        onClick={() => navigate(`/edit/${note.id}`)}
-                        style={{
-                            marginRight: "10px"
-                        }}
-                    >
-                        Edit
-                    </button>
-
-                    <button
-                        onClick={handleDelete}
-                    >
-                        Delete
-                    </button>
-
-                </div>
-
-            </div>
-
+      <footer className="note-card-foot">
+        <time dateTime={note.updatedAt}>Edited {timeAgo(note.updatedAt || note.createdAt)}</time>
+        <div className="note-actions">
+          <button
+            className={`icon-btn ${note.pinned ? "is-on" : ""}`}
+            onClick={() => onPin(note)}
+            aria-label={note.pinned ? "Unpin note" : "Pin note"}
+            aria-pressed={!!note.pinned}
+            title={note.pinned ? "Unpin" : "Pin to top"}
+          >
+            <Icon name="pin" size={16} />
+          </button>
+          <button className="icon-btn" onClick={() => onEdit(note)} aria-label="Edit note" title="Edit">
+            <Icon name="edit" size={16} />
+          </button>
+          <button className="icon-btn" onClick={() => onDelete(note)} aria-label="Delete note" title="Delete">
+            <Icon name="trash" size={16} />
+          </button>
         </div>
-
-    );
-
+      </footer>
+    </article>
+  );
 }
-
-export default NoteCard;

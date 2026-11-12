@@ -11,11 +11,25 @@ import com.knowledgecanvas.backend.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 
 @Service
 public class NoteService {
+
+    // Pinned notes first, then most recently updated.
+    private static final Comparator<NoteResponse> PINNED_THEN_NEWEST =
+            Comparator
+                    .comparing((NoteResponse n) ->
+                            Boolean.TRUE.equals(n.getPinned()) ? 0 : 1)
+                    .thenComparing(
+                            NoteResponse::getUpdatedAt,
+                            Comparator.nullsLast(
+                                    Comparator.<LocalDateTime>reverseOrder()
+                            )
+                    );
 
 
     private final NoteRepository noteRepository;
@@ -46,6 +60,7 @@ public class NoteService {
                 note.getCategory() == null
                         ? "General"
                         : note.getCategory(),
+                Boolean.TRUE.equals(note.getPinned()),
                 note.getCreatedAt(),
                 note.getUpdatedAt()
         );
@@ -54,13 +69,49 @@ public class NoteService {
 
 
 
-
     private User getUser(String email) {
 
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new ResourceNotFoundException("User not found")
                 );
+
+    }
+
+
+
+    private Note getOwnedNote(Long id, User user) {
+
+        return noteRepository.findByIdAndUser(id, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Note not found")
+                );
+
+    }
+
+
+
+    private void copyFields(NoteRequest request, Note note) {
+
+        note.setTitle(request.getTitle().trim());
+
+        note.setContent(request.getContent());
+
+        note.setColor(
+                request.getColor() == null || request.getColor().isBlank()
+                        ? "#FFFFFF"
+                        : request.getColor()
+        );
+
+        note.setCategory(
+                request.getCategory() == null || request.getCategory().isBlank()
+                        ? "General"
+                        : request.getCategory().trim()
+        );
+
+        if (request.getPinned() != null) {
+            note.setPinned(request.getPinned());
+        }
 
     }
 
@@ -70,39 +121,13 @@ public class NoteService {
 
         User user = getUser(email);
 
-        List<Note> notes = noteRepository.findByUser(user);
-
-        System.out.println("TOTAL NOTES = " + notes.size());
-
-        for(Note note : notes){
-
-            System.out.println(
-                    "ID: " + note.getId()
-                            + " TITLE: " + note.getTitle()
-                            + " CONTENT: " + note.getContent()
-            );
-
-        }
-
-
-        return notes.stream()
-                .map(note -> {
-
-                    System.out.println(
-                            "CONVERTING NOTE ID = "
-                                    + note.getId()
-                    );
-
-                    return convertToResponse(note);
-
-                })
+        return noteRepository.findByUser(user)
+                .stream()
+                .map(this::convertToResponse)
+                .sorted(PINNED_THEN_NEWEST)
                 .toList();
 
     }
-
-
-
-
 
 
 
@@ -111,58 +136,17 @@ public class NoteService {
             String email
     ) {
 
-
         User user = getUser(email);
-
-
 
         Note note = new Note();
 
-
-        note.setTitle(
-                request.getTitle()
-        );
-
-
-        note.setContent(
-                request.getContent()
-        );
-
-
-
-        note.setColor(
-                request.getColor() == null
-                        ? "#FFFFFF"
-                        : request.getColor()
-        );
-
-
-
-        note.setCategory(
-                request.getCategory() == null
-                        ? "General"
-                        : request.getCategory()
-        );
-
-
+        copyFields(request, note);
 
         note.setUser(user);
 
-
-
-        Note savedNote =
-                noteRepository.save(note);
-
-
-
-        return convertToResponse(savedNote);
+        return convertToResponse(noteRepository.save(note));
 
     }
-
-
-
-
-
 
 
 
@@ -171,27 +155,16 @@ public class NoteService {
             String email
     ) {
 
-
         User user = getUser(email);
 
-
-
         return noteRepository
-                .findByUserAndTitleContainingIgnoreCase(
-                        user,
-                        keyword
-                )
+                .searchByTitleOrContent(user, keyword)
                 .stream()
                 .map(this::convertToResponse)
+                .sorted(PINNED_THEN_NEWEST)
                 .toList();
 
     }
-
-
-
-
-
-
 
 
 
@@ -200,30 +173,11 @@ public class NoteService {
             String email
     ) {
 
-
-        User user = getUser(email);
-
-
-
-        Note note =
-                noteRepository.findByIdAndUser(id, user)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Note not found"
-                                )
-                        );
-
-
-
-        return convertToResponse(note);
+        return convertToResponse(
+                getOwnedNote(id, getUser(email))
+        );
 
     }
-
-
-
-
-
-
 
 
 
@@ -233,60 +187,28 @@ public class NoteService {
             String email
     ) {
 
+        Note note = getOwnedNote(id, getUser(email));
 
-        User user = getUser(email);
+        copyFields(request, note);
 
-
-
-        Note note =
-                noteRepository.findByIdAndUser(id, user)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Note not found"
-                                )
-                        );
-
-
-
-        note.setTitle(
-                request.getTitle()
-        );
-
-
-        note.setContent(
-                request.getContent()
-        );
-
-
-        note.setColor(
-                request.getColor() == null
-                        ? "#FFFFFF"
-                        : request.getColor()
-        );
-
-
-        note.setCategory(
-                request.getCategory() == null
-                        ? "General"
-                        : request.getCategory()
-        );
-
-
-
-        Note updatedNote =
-                noteRepository.save(note);
-
-
-
-        return convertToResponse(updatedNote);
+        return convertToResponse(noteRepository.save(note));
 
     }
 
 
 
+    public NoteResponse togglePin(
+            Long id,
+            String email
+    ) {
 
+        Note note = getOwnedNote(id, getUser(email));
 
+        note.setPinned(!Boolean.TRUE.equals(note.getPinned()));
 
+        return convertToResponse(noteRepository.save(note));
+
+    }
 
 
 
@@ -295,24 +217,10 @@ public class NoteService {
             String email
     ) {
 
-
-        User user = getUser(email);
-
-
-
-        Note note =
-                noteRepository.findByIdAndUser(id, user)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Note not found"
-                                )
-                        );
-
-
-
-        noteRepository.delete(note);
+        noteRepository.delete(
+                getOwnedNote(id, getUser(email))
+        );
 
     }
-
 
 }

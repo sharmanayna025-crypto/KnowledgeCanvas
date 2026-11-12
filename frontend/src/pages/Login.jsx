@@ -1,182 +1,79 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import api from "../api/axios";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { errorMessage } from "../api/http";
+import AuthShell from "../components/AuthShell";
+import PasswordField from "../components/PasswordField";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
-function Login() {
+export default function Login() {
+  useDocumentTitle("Sign in");
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-    const navigate = useNavigate();
-    const { login } = useAuth();
-    const { theme } = useTheme();
+  const destination = location.state?.from || "/";
+  if (isAuthenticated) return <Navigate to={destination} replace />;
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: ""
-    });
+  const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+  const submit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setBusy(true);
+    try {
+      await login(form.email.trim(), form.password);
+      navigate(destination, { replace: true });
+    } catch (err) {
+      setError(errorMessage(err, "Couldn't sign you in.", "notes server"));
+    } finally {
+      setBusy(false);
+    }
+  };
 
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        try {
-
-            const response = await api.post(
-                "/auth/login",
-                formData
-            );
-
-            login(response.data);
-
-            alert("Login successful");
-
-            navigate("/dashboard");
-
-        } catch (error) {
-
-            console.log(error);
-
-            alert(
-                error.response?.data?.message ||
-                "Login failed"
-            );
-
-        }
-
-    };
-
-    return (
-
-        <div
-            style={{
-                background: theme.background,
-                minHeight: "100vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                color: theme.text
-            }}
-        >
-
-            <div
-                style={{
-                    width: "400px",
-                    background: theme.card,
-                    padding: "35px",
-                    borderRadius: "20px",
-                    boxShadow: theme.shadow,
-                    border: `1px solid ${theme.border}`
-                }}
-            >
-
-                <h1
-                    style={{
-                        textAlign: "center",
-                        color: theme.primary,
-                        marginBottom: "30px"
-                    }}
-                >
-                    📚 KnowledgeCanvas
-                </h1>
-
-                <h2
-                    style={{
-                        textAlign: "center"
-                    }}
-                >
-                    Login
-                </h2>
-
-                <form onSubmit={handleSubmit}>
-
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            marginBottom: "15px",
-                            borderRadius: "8px",
-                            border: `1px solid ${theme.border}`,
-                            background: theme.background,
-                            color: theme.text,
-                            boxSizing: "border-box"
-                        }}
-                    />
-
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            marginBottom: "20px",
-                            borderRadius: "8px",
-                            border: `1px solid ${theme.border}`,
-                            background: theme.background,
-                            color: theme.text,
-                            boxSizing: "border-box"
-                        }}
-                    />
-
-                    <button
-                        type="submit"
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            border: "none",
-                            borderRadius: "8px",
-                            background: theme.primary,
-                            color: "white",
-                            fontWeight: "bold",
-                            cursor: "pointer"
-                        }}
-                    >
-                        Login
-                    </button>
-
-                </form>
-
-                <p
-                    style={{
-                        textAlign: "center",
-                        marginTop: "20px"
-                    }}
-                >
-                    Don't have an account?{" "}
-                    <Link
-                        to="/register"
-                        style={{
-                            color: theme.primary,
-                            textDecoration: "none",
-                            fontWeight: "bold"
-                        }}
-                    >
-                        Register
-                    </Link>
-                </p>
-
-            </div>
-
-        </div>
-
-    );
-
+  return (
+    <AuthShell
+      title="Welcome back"
+      subtitle="Sign in to pick up where you left off."
+      footer={
+        <>
+          New here? <Link to="/register">Create an account</Link>
+        </>
+      }
+    >
+      <form onSubmit={submit} className="stack" noValidate>
+        <label className="field">
+          <span>Email</span>
+          <input
+            className="input"
+            type="email"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            required
+            value={form.email}
+            onChange={update}
+          />
+        </label>
+        <PasswordField
+          name="password"
+          autoComplete="current-password"
+          required
+          value={form.password}
+          onChange={update}
+        />
+        {error && (
+          <p className="field-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="btn btn-primary btn-block" disabled={busy || !form.email || !form.password}>
+          {busy ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
+    </AuthShell>
+  );
 }
-
-export default Login;

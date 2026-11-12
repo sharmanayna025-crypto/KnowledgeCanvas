@@ -1,0 +1,8 @@
+fastapi>=0.115
+uvicorn>=0.30
+python-multipart>=0.0.9
+SQLAlchemy>=2.0
+pypdf>=5.0
+google-genai>=1.0
+python-dotenv>=1.0
+PyJWT>=2.8

@@ -97,6 +97,20 @@ public class NoteController {
 
 
 
+    @PatchMapping("/{id}/pin")
+    public NoteResponse togglePin(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+
+        return noteService.togglePin(
+                id,
+                userDetails.getUsername()
+        );
+    }
+
+
+
     @DeleteMapping("/{id}")
     public void deleteNote(
             @PathVariable Long id,

@@ -1,198 +1,100 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import api from "../api/axios";
-import { useTheme } from "../context/ThemeContext";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { errorMessage } from "../api/http";
+import AuthShell from "../components/AuthShell";
+import PasswordField from "../components/PasswordField";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
-function Register() {
+export default function Register() {
+  useDocumentTitle("Create account");
+  const { register, isAuthenticated } = useAuth();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-    const navigate = useNavigate();
-    const { theme } = useTheme();
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        password: ""
-    });
+  const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-    const handleChange = (e) => {
+  const submit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (form.password.length < 6) {
+      setError("Use at least 6 characters for your password.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await register(form.name.trim(), form.email.trim(), form.password);
+      toast.success(`Welcome, ${form.name.trim().split(" ")[0]}. Your canvas is ready.`);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(errorMessage(err, "Couldn't create your account.", "notes server"));
+    } finally {
+      setBusy(false);
+    }
+  };
 
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-
-    };
-
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        try {
-
-            await api.post("/auth/register", formData);
-
-            alert("Registration successful");
-
-            navigate("/login");
-
-        } catch (error) {
-
-            console.log(error);
-
-            alert(
-                error.response?.data?.message ||
-                "Registration failed"
-            );
-
-        }
-
-    };
-
-    return (
-
-        <div
-            style={{
-                background: theme.background,
-                minHeight: "100vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                color: theme.text
-            }}
+  return (
+    <AuthShell
+      title="Create your account"
+      subtitle="It takes a few seconds. No card, no catch."
+      footer={
+        <>
+          Already have an account? <Link to="/login">Sign in</Link>
+        </>
+      }
+    >
+      <form onSubmit={submit} className="stack" noValidate>
+        <label className="field">
+          <span>Your name</span>
+          <input
+            className="input"
+            name="name"
+            autoComplete="name"
+            autoFocus
+            required
+            value={form.name}
+            onChange={update}
+          />
+        </label>
+        <label className="field">
+          <span>Email</span>
+          <input
+            className="input"
+            type="email"
+            name="email"
+            autoComplete="email"
+            required
+            value={form.email}
+            onChange={update}
+          />
+        </label>
+        <PasswordField
+          name="password"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          value={form.password}
+          onChange={update}
+        />
+        <small className="hint">At least 6 characters.</small>
+        {error && (
+          <p className="field-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button
+          className="btn btn-primary btn-block"
+          disabled={busy || !form.name || !form.email || !form.password}
         >
-
-            <div
-                style={{
-                    width: "420px",
-                    background: theme.card,
-                    padding: "35px",
-                    borderRadius: "20px",
-                    boxShadow: theme.shadow,
-                    border: `1px solid ${theme.border}`
-                }}
-            >
-
-                <h1
-                    style={{
-                        textAlign: "center",
-                        color: theme.primary,
-                        marginBottom: "10px"
-                    }}
-                >
-                    📚 KnowledgeCanvas
-                </h1>
-
-                <h2
-                    style={{
-                        textAlign: "center",
-                        marginBottom: "30px"
-                    }}
-                >
-                    Create Account
-                </h2>
-
-                <form onSubmit={handleSubmit}>
-
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Full Name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            marginBottom: "15px",
-                            borderRadius: "8px",
-                            border: `1px solid ${theme.border}`,
-                            background: theme.background,
-                            color: theme.text,
-                            boxSizing: "border-box"
-                        }}
-                    />
-
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            marginBottom: "15px",
-                            borderRadius: "8px",
-                            border: `1px solid ${theme.border}`,
-                            background: theme.background,
-                            color: theme.text,
-                            boxSizing: "border-box"
-                        }}
-                    />
-
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            marginBottom: "20px",
-                            borderRadius: "8px",
-                            border: `1px solid ${theme.border}`,
-                            background: theme.background,
-                            color: theme.text,
-                            boxSizing: "border-box"
-                        }}
-                    />
-
-                    <button
-                        type="submit"
-                        style={{
-                            width: "100%",
-                            padding: "12px",
-                            border: "none",
-                            borderRadius: "8px",
-                            background: theme.primary,
-                            color: "white",
-                            fontWeight: "bold",
-                            cursor: "pointer"
-                        }}
-                    >
-                        Create Account
-                    </button>
-
-                </form>
-
-                <p
-                    style={{
-                        textAlign: "center",
-                        marginTop: "20px"
-                    }}
-                >
-                    Already have an account?{" "}
-                    <Link
-                        to="/login"
-                        style={{
-                            color: theme.primary,
-                            textDecoration: "none",
-                            fontWeight: "bold"
-                        }}
-                    >
-                        Login
-                    </Link>
-                </p>
-
-            </div>
-
-        </div>
-
-    );
-
+          {busy ? "Creating account…" : "Create account"}
+        </button>
+      </form>
+    </AuthShell>
+  );
 }
-
-export default Register;

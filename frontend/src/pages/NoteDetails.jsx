@@ -1,189 +1,122 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import api from "../api/axios";
-import Navbar from "../components/Navbar";
-import { useTheme } from "../context/ThemeContext";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { deleteNote, getNote, togglePin } from "../api/notes";
+import { errorMessage } from "../api/http";
+import Icon from "../components/Icon";
+import { PageLoading } from "../components/Loading";
+import Markdown from "../components/Markdown";
+import ServiceBanner from "../components/ServiceBanner";
+import { useConfirm } from "../context/ConfirmContext";
+import { useToast } from "../context/ToastContext";
+import { useAsync } from "../hooks/useAsync";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { isPlain } from "../utils/constants";
+import { copyText, downloadText } from "../utils/files";
+import { formatDate, slugify, timeAgo, wordCount } from "../utils/format";
 
+export default function NoteDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const confirm = useConfirm();
 
-function NoteDetails() {
+  const { data: note, loading, error, reload, setData } = useAsync(() => getNote(id), [id]);
+  useDocumentTitle(note?.title || "Note");
 
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const { theme } = useTheme();
+  if (loading && !note) return <PageLoading label="Opening note…" />;
 
-    const [note, setNote] = useState(null);
-
-
-    useEffect(() => {
-
-        fetchNote();
-
-    }, []);
-
-
-
-    const fetchNote = async () => {
-
-        try {
-
-            const response = await api.get(`/notes/${id}`);
-
-            setNote(response.data);
-
-
-        } catch(error) {
-
-            console.log(error);
-
-            alert("Failed to load note");
-
-        }
-
-    };
-
-
-
-    const formatDate = (date) => {
-
-        if(!date) return "";
-
-        return new Date(date).toLocaleString(
-            "en-IN",
-            {
-                day:"2-digit",
-                month:"short",
-                year:"numeric",
-                hour:"2-digit",
-                minute:"2-digit"
-            }
-        );
-
-    };
-
-
-
-    if(!note) {
-
-        return <p>Loading...</p>;
-
-    }
-
-
-
+  if (error) {
+    const missing = error.response?.status === 404;
     return (
+      <div className="page page-narrow">
+        <Link to="/notes" className="back-link">
+          <Icon name="back" size={16} /> All notes
+        </Link>
+        {missing ? (
+          <div className="empty">
+            <h3>That note isn't here</h3>
+            <p>It may have been deleted.</p>
+          </div>
+        ) : (
+          <ServiceBanner error={error} service="notes server" onRetry={reload} />
+        )}
+      </div>
+    );
+  }
 
-        <div
-            style={{
-                background: theme.background,
-                minHeight:"100vh",
-                color:theme.text
-            }}
-        >
+  const tinted = !isPlain(note.color);
 
-            <Navbar />
+  const pin = async () => {
+    try {
+      setData(await togglePin(note.id));
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't pin that note."));
+    }
+  };
 
+  const remove = async () => {
+    const ok = await confirm({
+      title: `Delete “${note.title}”?`,
+      body: "This can't be undone.",
+      confirmLabel: "Delete note",
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteNote(note.id);
+      toast.success("Note deleted");
+      navigate("/notes", { replace: true });
+    } catch (e) {
+      toast.error(errorMessage(e, "Couldn't delete that note."));
+    }
+  };
 
-            <div
-                style={{
-                    padding:"40px",
-                    display:"flex",
-                    justifyContent:"center"
-                }}
-            >
+  const copy = async () =>
+    toast.show((await copyText(`# ${note.title}\n\n${note.content}`)) ? "Copied as Markdown" : "Couldn't copy");
 
-                <div
-                    style={{
-                        width:"700px",
-                        background:note.color,
-                        padding:"35px",
-                        borderRadius:"20px",
-                        boxShadow:theme.shadow
-                    }}
-                >
+  return (
+    <div className="page page-narrow">
+      <Link to="/notes" className="back-link">
+        <Icon name="back" size={16} /> All notes
+      </Link>
 
-
-                    <span
-                        style={{
-                            background:theme.primary,
-                            color:"white",
-                            padding:"6px 14px",
-                            borderRadius:"20px"
-                        }}
-                    >
-                        {note.category}
-                    </span>
-
-
-
-                    <h1>
-                        {note.title}
-                    </h1>
-
-
-
-                    <p
-                        style={{
-                            whiteSpace:"pre-wrap",
-                            lineHeight:"1.8",
-                            fontSize:"17px"
-                        }}
-                    >
-                        {note.content}
-                    </p>
-
-
-
-                    <hr />
-
-
-
-                    <p>
-                        Created:
-                        {" "}
-                        {formatDate(note.createdAt)}
-                    </p>
-
-
-                    <p>
-                        Updated:
-                        {" "}
-                        {formatDate(note.updatedAt)}
-                    </p>
-
-
-
-                    <button
-                        onClick={() =>
-                            navigate(`/edit/${note.id}`)
-                        }
-                    >
-                        Edit
-                    </button>
-
-
-                    <button
-                        style={{
-                            marginLeft:"10px"
-                        }}
-                        onClick={() =>
-                            navigate("/dashboard")
-                        }
-                    >
-                        Back
-                    </button>
-
-
-                </div>
-
-
-            </div>
-
-
+      <article className={`card note-sheet ${tinted ? "tinted" : ""}`} style={tinted ? { background: note.color } : undefined}>
+        <div className="note-card-top">
+          <span className="pill">{note.category}</span>
+          {note.pinned && (
+            <span className="pinned-flag">
+              <Icon name="pin" size={13} /> Pinned
+            </span>
+          )}
         </div>
 
-    );
+        <h1 className="sheet-title">{note.title}</h1>
+        <p className="sheet-meta">
+          Created {formatDate(note.createdAt)} · Edited {timeAgo(note.updatedAt)} · {wordCount(note.content)} words
+        </p>
 
+        <Markdown className="md-doc">{note.content}</Markdown>
+      </article>
+
+      <div className="action-row">
+        <button className="btn btn-primary" onClick={() => navigate(`/notes/${note.id}/edit`)}>
+          <Icon name="edit" size={16} /> Edit
+        </button>
+        <button className="btn btn-ghost" onClick={pin}>
+          <Icon name="pin" size={16} /> {note.pinned ? "Unpin" : "Pin"}
+        </button>
+        <button className="btn btn-ghost" onClick={copy}>
+          <Icon name="copy" size={16} /> Copy
+        </button>
+        <button
+          className="btn btn-ghost"
+          onClick={() => downloadText(`${slugify(note.title)}.md`, `# ${note.title}\n\n${note.content}\n`)}
+        >
+          <Icon name="download" size={16} /> Export .md
+        </button>
+        <button className="btn btn-ghost btn-danger-text push-right" onClick={remove}>
+          <Icon name="trash" size={16} /> Delete
+        </button>
+      </div>
+    </div>
+  );
 }
-
-
-export default NoteDetails;

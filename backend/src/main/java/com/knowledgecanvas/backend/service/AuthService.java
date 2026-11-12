@@ -1,10 +1,14 @@
 package com.knowledgecanvas.backend.service;
 
+import com.knowledgecanvas.backend.dto.AuthResponse;
+import com.knowledgecanvas.backend.dto.RegisterRequest;
 import com.knowledgecanvas.backend.dto.UserResponse;
 import com.knowledgecanvas.backend.entity.User;
+import com.knowledgecanvas.backend.exception.EmailAlreadyExistsException;
 import com.knowledgecanvas.backend.repository.UserRepository;
 import com.knowledgecanvas.backend.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,61 +33,60 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
     }
 
-    public User register(User user) {
-
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        System.out.println("===== REGISTER DEBUG =====");
-        System.out.println("Raw password: " + user.getPassword());
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        System.out.println("Encoded password: " + user.getPassword());
-
-        return userRepository.save(user);
-    }
-
-    public String login(String email, String password) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        System.out.println("========== LOGIN DEBUG ==========");
-        System.out.println("Email entered: " + email);
-        System.out.println("Raw password entered: [" + password + "]");
-        System.out.println("Stored email: " + user.getEmail());
-        System.out.println("Stored hash: " + user.getPassword());
-
-        boolean matches = passwordEncoder.matches(
-                password,
-                user.getPassword()
-        );
-
-        System.out.println("Password matches: " + matches);
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        password
-                )
-        );
-
-        System.out.println("Authentication successful!");
-
-        return jwtService.generateToken(email);
-    }
-
-    public UserResponse getCurrentUser(String email) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+    private UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail()
         );
+    }
+
+    public UserResponse register(RegisterRequest request) {
+
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
+            throw new EmailAlreadyExistsException(
+                    "An account with this email already exists"
+            );
+        }
+
+        User user = new User();
+
+        user.setName(request.getName().trim());
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        // Never return the entity: it carries the password hash.
+        return toResponse(userRepository.save(user));
+    }
+
+    public AuthResponse login(String email, String password) {
+
+        String typedEmail = email.trim();
+
+        // Throws BadCredentialsException for an unknown email or wrong
+        // password; GlobalExceptionHandler turns that into a 401.
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(typedEmail, password)
+        );
+
+        User user = userRepository.findByEmailIgnoreCase(typedEmail)
+                .orElseThrow(() ->
+                        new BadCredentialsException("Invalid email or password"));
+
+        return new AuthResponse(
+                jwtService.generateToken(user.getEmail()),
+                toResponse(user)
+        );
+    }
+
+    public UserResponse getCurrentUser(String email) {
+
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() ->
+                        new BadCredentialsException("Invalid email or password"));
+
+        return toResponse(user);
     }
 }

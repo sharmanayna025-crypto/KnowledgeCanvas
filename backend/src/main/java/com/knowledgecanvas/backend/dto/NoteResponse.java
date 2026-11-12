@@ -14,6 +14,8 @@ public class NoteResponse {
 
     private String category;
 
+    private Boolean pinned;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -27,6 +29,7 @@ public class NoteResponse {
             String content,
             String color,
             String category,
+            Boolean pinned,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -36,6 +39,7 @@ public class NoteResponse {
         this.content = content;
         this.color = color;
         this.category = category;
+        this.pinned = pinned;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
 
@@ -79,6 +83,14 @@ public class NoteResponse {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Boolean getPinned() {
+        return pinned;
+    }
+
+    public void setPinned(Boolean pinned) {
+        this.pinned = pinned;
     }
 
     public LocalDateTime getCreatedAt() {

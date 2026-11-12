@@ -16,6 +16,8 @@ public class NoteRequest {
 
     private String category;
 
+    private Boolean pinned;
+
     public NoteRequest() {
     }
 
@@ -49,5 +51,13 @@ public class NoteRequest {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Boolean getPinned() {
+        return pinned;
+    }
+
+    public void setPinned(Boolean pinned) {
+        this.pinned = pinned;
     }
 }

@@ -1,11 +1,13 @@
 package com.knowledgecanvas.backend.controller;
 
+import com.knowledgecanvas.backend.dto.AuthResponse;
 import com.knowledgecanvas.backend.dto.LoginRequest;
 import com.knowledgecanvas.backend.dto.RegisterRequest;
 import com.knowledgecanvas.backend.dto.UserResponse;
-import com.knowledgecanvas.backend.entity.User;
 import com.knowledgecanvas.backend.security.CustomUserDetails;
 import com.knowledgecanvas.backend.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -21,26 +23,19 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(
-            @RequestBody RegisterRequest request
+    public ResponseEntity<UserResponse> register(
+            @Valid @RequestBody RegisterRequest request
     ) {
 
-        User user = new User();
-
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
-
-        return ResponseEntity.ok(authService.register(user));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(
-            @RequestBody LoginRequest request
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest request
     ) {
-
-        System.out.println("EMAIL = " + request.getEmail());
-        System.out.println("PASSWORD = " + request.getPassword());
 
         return ResponseEntity.ok(
                 authService.login(
