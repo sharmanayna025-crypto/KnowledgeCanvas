@@ -77,152 +77,19 @@ Swagger for the notes API: http://localhost:8080/swagger-ui.html. Documents API 
 
 ## Screenshots
 
-Every page, with sample data. The original-PDF tab isn't shown because headless browsers can't render embedded PDFs. Fonts shown are system fallbacks; the app loads Bricolage Grotesque and Instrument Sans from Google Fonts.
+**Home: recent notes and documents**
 
-### Getting started
+![Home: recent notes and documents](screenshots/12-home.png)
 
-**Sign in**
+**Notes: pinned first, filters, colours**
 
-![Sign in](screenshots/01-login.png)
+![Notes: pinned first, filters, colours](screenshots/09-notes.png)
 
-**Create account**
+**Interactive quiz from any PDF**
 
-![Create account](screenshots/02-register.png)
+![Interactive quiz from any PDF](screenshots/16-doc-quiz-answer.png)
 
-**Home, first visit**
-
-![Home, first visit](screenshots/03-home-empty.png)
-
-**Notes, empty**
-
-![Notes, empty](screenshots/04-notes-empty.png)
-
-**Documents, empty**
-
-![Documents, empty](screenshots/05-documents-empty.png)
-
-
-### Notes and home
-
-**Note editor (Markdown, colours, pin)**
-
-![Note editor (Markdown, colours, pin)](screenshots/06-note-editor.png)
-
-**Editor preview**
-
-![Editor preview](screenshots/07-note-editor-preview.png)
-
-**Note view**
-
-![Note view](screenshots/08-note-details.png)
-
-**Notes (pinned first, filters)**
-
-![Notes (pinned first, filters)](screenshots/09-notes.png)
-
-**Notes, list view**
-
-![Notes, list view](screenshots/10-notes-list-view.png)
-
-**Documents**
-
-![Documents](screenshots/11-documents.png)
-
-**Home**
-
-![Home](screenshots/12-home.png)
-
-**AI help in the editor**
-
-![AI help in the editor](screenshots/22-note-ai-help.png)
-
-
-### Document study tools
-
-**Document workspace**
-
-![Document workspace](screenshots/13-doc-before-generating.png)
-
-**AI summary**
-
-![AI summary](screenshots/14-doc-summary.png)
-
-**AI study notes**
-
-![AI study notes](screenshots/15-doc-study-notes.png)
-
-**Quiz, answering**
-
-![Quiz, answering](screenshots/16-doc-quiz-answer.png)
-
-**Quiz results and review**
-
-![Quiz results and review](screenshots/17-doc-quiz-results.png)
-
-**Flashcard, question**
-
-![Flashcard, question](screenshots/18-doc-flashcard-front.png)
-
-**Flashcard, answer**
-
-![Flashcard, answer](screenshots/19-doc-flashcard-back.png)
-
-**Chat with the PDF**
-
-![Chat with the PDF](screenshots/20-doc-chat-empty.png)
-
-**Chat answer**
-
-![Chat answer](screenshots/21-doc-chat.png)
-
-
-### Search and dialogs
-
-**Search across notes and PDFs**
-
-![Search across notes and PDFs](screenshots/23-search.png)
-
-**Delete confirmation**
-
-![Delete confirmation](screenshots/24-confirm-delete.png)
-
-**Page not found**
-
-![Page not found](screenshots/25-not-found.png)
-
-
-### Dark mode
-
-**Dark mode: home**
-
-![Dark mode: home](screenshots/26-dark-home.png)
-
-**Dark mode: notes**
-
-![Dark mode: notes](screenshots/27-dark-notes.png)
-
-**Dark mode: quiz**
-
-![Dark mode: quiz](screenshots/28-dark-quiz.png)
-
-
-### Mobile
-
-**Mobile: sign in**
-
-![Mobile: sign in](screenshots/29-mobile-login.png)
-
-**Mobile: home**
-
-![Mobile: home](screenshots/30-mobile-home.png)
-
-**Mobile: notes**
-
-![Mobile: notes](screenshots/31-mobile-notes.png)
-
-**Mobile: flashcards**
-
-![Mobile: flashcards](screenshots/32-mobile-flashcards.png)
+More pages (editor, flashcards, chat, search, dark mode, mobile) are in the [`screenshots/`](screenshots) folder.
 
 ## Roadmap
 OCR for scanned PDFs, tags and note links, spaced-repetition reviews, PDF export, deployment config.
